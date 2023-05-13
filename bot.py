@@ -27,29 +27,29 @@ db = DataBase('database')
 async def process_start_command(message: types.Message):
     if not db.user_exists(message.from_user.id):
         db.add_user(message.from_user.id)
-        await bot.send_message(message.from_user.id, 'Enter ur nickname: ')
+        await bot.send_message(message.from_user.id, 'Введи свой ник: ')
     else:
-        await bot.send_message(message.from_user.id, 'U are already registered', reply_markup=nav.mainMenu)
+        await bot.send_message(message.from_user.id, 'Ты уже зарегистрирован .', reply_markup=nav.mainMenu)
 
-
+'''
 @dp.message_handler()
 async def bot_message(message: types.Message):
-    if message.chat.type == 'private':
-        if message.text == 'Profile':
-            user_nickname = 'Ur nickname: ' + db.get_nickname(message.from_user.id)
-            await bot.send_message(message.from_user.id, user_nickname)
 
+    if message.text == 'Profile':
+        user_nickname = 'Ur nickname: ' + db.get_nickname(message.from_user.id)
+        await bot.send_message(message.from_user.id, user_nickname)
+
+    else:
+        if db.get_signup(message.from_user.id) == 'setnickname':
+            if len(message.text) > 15:
+                await bot.send_message(message.from_user.id, 'Ur nick is so long')
+            else:
+                db.set_nikname(message.from_user.id, message.text)
+                db.get_signup(message.from_user.id)
+                await bot.send_message(message.from_user.id, 'Hi ur in side me :) Just send photo for me ', reply_markup=nav.mainMenu)
         else:
-            if db.get_signup(message.from_user.id) == 'setnickname':
-                if len(message.text) > 15:
-                    await bot.send_message(message.from_user.id, 'Ur nick is so long')
-                elif '@' in message.text or '/' in message.text:
-                    await bot.send_message(message.from_user.id, 'Ur nick cant be true')
-                else:
-                    db.set_nikname(message.from_user.id, message.text)
-                    db.get_signup(message.from_user.id, 'done')
-                    await bot.send_message(message.from_user.id, 'Hi ur in side me :) Just send photo for me ', reply_markup=nav.mainMenu)
-
+            await message.reply(message.text)
+'''
 
 @dp.message_handler(commands=['help'])
 async def process_help_command(message: types.Message):
@@ -86,6 +86,21 @@ async def choose_style(style: types.CallbackQuery):
 
 @dp.message_handler()
 async def process_message(message: types.Message):
-    await message.reply(message.text)
+    if message.chat.type == 'private':
+        if message.text == 'Profile':
+            user_nickname = 'Твой ник: ' + db.get_nickname(message.from_user.id)
+            await bot.send_message(message.from_user.id, user_nickname)
+
+        else:
+            if db.get_signup(message.from_user.id) == 'setnickname':
+                if len(message.text) > 15:
+                    await bot.send_message(message.from_user.id, 'Твой ник, слишком длинный')
+                else:
+                    db.set_nikname(message.from_user.id, message.text)
+                    db.get_signup(message.from_user.id)
+                    await bot.send_message(message.from_user.id, 'Привет, ты зарегестрировался , отправь мне фото. \n Если ты отправишь мне не фотографию....\n Я поменяю твой ник , будет тебе уроком',
+                                           reply_markup=nav.mainMenu)
+            else:
+                await message.reply(message.text)
 
 executor.start_polling(dp)
